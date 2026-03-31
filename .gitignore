@@ -1,0 +1,36 @@
+# Unreal Engine generated folders
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# IDE and tool metadata
+.vs/
+.vscode/
+.idea/
+
+# Rider and Visual Studio generated files
+*.VC.db
+*.VC.opendb
+*.sdf
+*.suo
+*.opensdf
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build artifacts and logs
+*.log
+*.tmp
+*.pdb
+
+# Generated project files
+*.xcodeproj
+*.xcworkspace
+*.sln
+
+# Per-user Unreal editor settings
+Config/DefaultEditorPerProjectUserSettings.ini
+
+# Python/cache noise
+__pycache__/
