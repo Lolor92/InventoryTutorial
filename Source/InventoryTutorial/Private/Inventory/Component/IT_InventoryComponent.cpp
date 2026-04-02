@@ -46,8 +46,9 @@ bool UIT_InventoryComponent::TryAddItemAuthority(const FAddItemRequest& Request,
 	if (Request.Quantity <= 0) return false;
 	
 	const int32 ContainerMaxSlots = GetContainerMaxSlots(Request.ContainerId);
+	const int32 ItemMaxStackSize = GetItemMaxStackSize(Request.ItemTag);
 	
-	const FAddItemResponse Response = InventoryMutator.AddItem(Inventory, Request, ContainerMaxSlots);
+	const FAddItemResponse Response = InventoryMutator.AddItem(Inventory, Request, ContainerMaxSlots, ItemMaxStackSize);
 	
 	OutResponse = Response;
 	
@@ -70,4 +71,14 @@ int32 UIT_InventoryComponent::GetContainerMaxSlots(const FGameplayTag& Container
 	}
 	
 	return 0;
+}
+
+int32 UIT_InventoryComponent::GetItemMaxStackSize(const FGameplayTag& ItemTag) const
+{
+	if (!ItemDatabase) return 0;
+	
+	const UIT_ItemDefinition* Def = ItemDatabase->GetItemDefinitionByTag(ItemTag);
+	if (!Def) return 0;
+	
+	return Def->bStackable ? FMath::Max(1, Def->MaxStackSize) : 1;
 }

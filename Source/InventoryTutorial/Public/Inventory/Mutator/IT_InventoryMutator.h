@@ -7,7 +7,8 @@
 class INVENTORYTUTORIAL_API FIT_InventoryMutator
 {
 public:
-	FAddItemResponse AddItem(FInventoryEntryArray& Inventory, const FAddItemRequest& Request, const int32 ContainerMaxSlots);
+	FAddItemResponse AddItem(FInventoryEntryArray& Inventory, const FAddItemRequest& Request,
+		const int32 ContainerMaxSlots, const int32 ItemMaxStackSize);
 	
 	static int32 FindFirstFreeSlot(const FInventoryEntryArray& Inventory, const FGameplayTag& ContainerId, int32 MaxSlots);
 };

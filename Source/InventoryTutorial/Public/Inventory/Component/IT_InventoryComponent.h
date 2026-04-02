@@ -6,6 +6,7 @@
 #include "Inventory/Types/Requests/IT_RequestTypes.h"
 #include "Inventory/Replication/IT_InventoryFastArray.h"
 #include "Inventory/Types/Config/IT_ContainerConfig.h"
+#include "Inventory/Data/Databases/IT_ItemDatabase.h"
 #include "IT_InventoryComponent.generated.h"
 
 
@@ -18,6 +19,7 @@ public:
 	UIT_InventoryComponent();
 	
 	int32 GetContainerMaxSlots(const FGameplayTag& ContainerId) const;
+	int32 GetItemMaxStackSize(const FGameplayTag& ItemTag) const;
 	
 	// Add Item
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Request")
@@ -35,6 +37,9 @@ protected:
 	
 	UPROPERTY(Replicated)
 	FInventoryEntryArray Inventory;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Inventory")
+	TObjectPtr<UIT_ItemDatabase> ItemDatabase = nullptr;
 	
 private:
 	FIT_InventoryMutator InventoryMutator;

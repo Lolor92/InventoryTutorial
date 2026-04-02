@@ -1,7 +1,7 @@
 ﻿#include "Inventory/Mutator/IT_InventoryMutator.h"
 
 FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, const FAddItemRequest& Request,
-	const int32 ContainerMaxSlots)
+	const int32 ContainerMaxSlots, const int32 ItemMaxStackSize)
 {
 	FAddItemResponse Response;
 	Response.Result = EAddItemResult::Failed;
@@ -12,6 +12,8 @@ FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, 
 	if (!Request.ContainerId.IsValid()) return Response;
 	if (!Request.ItemTag.IsValid()) return Response;
 	if (Request.Quantity <= 0) return Response;
+	if (ContainerMaxSlots <= 0) return Response;
+	if (ItemMaxStackSize <= 0) return Response;
 	
 	int32 Remaining = Response.RemainingQuantity;
 	
@@ -22,11 +24,18 @@ FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, 
 		
 		if (Entry.ContainerId != Request.ContainerId) continue;
 		if (Entry.ItemTag != Request.ItemTag) continue;
+		if (Entry.Quantity >= ItemMaxStackSize) continue;
 		
-		const int32 AddedToStack = Remaining;
-		Entry.Quantity += AddedToStack;
-		Remaining = 0;
-		Response.AddedQuantity = AddedToStack;
+		const int32 SpaceLeft = ItemMaxStackSize - Entry.Quantity;
+		const int32 ToAdd = FMath::Min(SpaceLeft, Remaining);
+		if (ToAdd <= 0) continue;
+		
+		// Increase the stack
+		Entry.Quantity += ToAdd;
+		// Reduce what is still left to place
+		Remaining -= ToAdd;
+		// Record how much the operation successfully added
+		Response.AddedQuantity += ToAdd;
 		
 		UE_LOG(LogTemp, Warning, TEXT("Mutator AddItem: Stacking into \nSlot=%d \nCurrentQuantity=%d"),
 			Entry.SlotIndex,
@@ -41,15 +50,20 @@ FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, 
 	{
 		// Find the first free slot
 		const int32 FreeSlotIndex = FindFirstFreeSlot(Inventory, Request.ContainerId, ContainerMaxSlots);
+		if (FreeSlotIndex == INDEX_NONE) break;
+		
+		/* If remaining is smaller than max stack, use all of it
+		 * otherwise create a full stack and keep looping for the rest */
+		const int32 NewQuantity = FMath::Min(Remaining, ItemMaxStackSize);
 		
 		FInventoryEntry NewEntry;
 		NewEntry.ContainerId = Request.ContainerId;
 		NewEntry.ItemTag = Request.ItemTag;
-		NewEntry.Quantity = Request.Quantity;
+		NewEntry.Quantity = NewQuantity;
 		NewEntry.SlotIndex = FreeSlotIndex;
 		
-		Remaining -= NewEntry.Quantity;
-		Response.AddedQuantity += NewEntry.Quantity;
+		Remaining -= NewQuantity;
+		Response.AddedQuantity += NewQuantity;
 		
 		UE_LOG(LogTemp, Warning, TEXT("Mutator AddItem: Creating new entry in \nSlot=%d \nQuantity=%d"),
 			NewEntry.SlotIndex,
