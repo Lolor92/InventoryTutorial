@@ -1,6 +1,7 @@
 ﻿#include "Inventory/Mutator/IT_InventoryMutator.h"
 
-FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, const FAddItemRequest& Request)
+FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, const FAddItemRequest& Request,
+	const int32 ContainerMaxSlots)
 {
 	FAddItemResponse Response;
 	Response.Result = EAddItemResult::Failed;
@@ -39,7 +40,7 @@ FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, 
 	while (Remaining > 0)
 	{
 		// Find the first free slot
-		const int32 FreeSlotIndex = 0;
+		const int32 FreeSlotIndex = FindFirstFreeSlot(Inventory, Request.ContainerId, ContainerMaxSlots);
 		
 		FInventoryEntry NewEntry;
 		NewEntry.ContainerId = Request.ContainerId;
@@ -80,4 +81,34 @@ FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, 
 	}
 	
 	return Response;
+}
+
+int32 FIT_InventoryMutator::FindFirstFreeSlot(const FInventoryEntryArray& Inventory, const FGameplayTag& ContainerId,
+	int32 MaxSlots)
+{
+	if (!ContainerId.IsValid() || MaxSlots <= 0) return INDEX_NONE;
+	
+	// Create a bit array to tract which slot indices are already used in the container.
+	// It starts with all slots set to false, meaning all slots are considered empty at first.
+	TBitArray<> UsedSlots(false, MaxSlots);
+	
+	// Check every inventory entry to see which slots are already used
+	for (const FInventoryEntry& Entry : Inventory.Entries)
+	{
+		// Only mark slots that belong to this container and are in valid range
+		if (Entry.ContainerId == ContainerId && Entry.SlotIndex >= 0 && Entry.SlotIndex < MaxSlots)
+		{
+			UsedSlots[Entry.SlotIndex] = true;
+		}
+	}
+	
+	// Scan from the start and return the first slot that is still free
+	for (int32 SlotIndex = 0; SlotIndex < MaxSlots; SlotIndex++)
+	{
+		if (UsedSlots[SlotIndex]) continue;
+		
+		return SlotIndex;
+	}
+	
+	return INDEX_NONE;
 }

@@ -45,7 +45,9 @@ bool UIT_InventoryComponent::TryAddItemAuthority(const FAddItemRequest& Request,
 	if (!Request.ItemTag.IsValid()) return false;
 	if (Request.Quantity <= 0) return false;
 	
-	const FAddItemResponse Response = InventoryMutator.AddItem(Inventory, Request);
+	const int32 ContainerMaxSlots = GetContainerMaxSlots(Request.ContainerId);
+	
+	const FAddItemResponse Response = InventoryMutator.AddItem(Inventory, Request, ContainerMaxSlots);
 	
 	OutResponse = Response;
 	
@@ -55,4 +57,17 @@ bool UIT_InventoryComponent::TryAddItemAuthority(const FAddItemRequest& Request,
 		*StaticEnum<EAddItemResult>()->GetNameStringByValue(static_cast<int>(OutResponse.Result)));
 	
 	return OutResponse.AddedQuantity > 0;
+}
+
+int32 UIT_InventoryComponent::GetContainerMaxSlots(const FGameplayTag& ContainerId) const
+{
+	for (const FContainerConfig Config : ContainerConfigs)
+	{
+		if (Config.ContainerId == ContainerId)
+		{
+			return Config.MaxSlots;
+		}
+	}
+	
+	return 0;
 }
