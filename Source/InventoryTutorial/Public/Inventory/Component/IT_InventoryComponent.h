@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Inventory/Data/Databases/IT_ItemDatabase.h"
 #include "Inventory/Mutator/IT_InventoryMutator.h"
 #include "Inventory/Types/Requests/IT_RequestTypes.h"
 #include "Inventory/Replication/IT_InventoryFastArray.h"
 #include "Inventory/Types/Config/IT_ContainerConfig.h"
-#include "Inventory/Data/Databases/IT_ItemDatabase.h"
 #include "IT_InventoryComponent.generated.h"
 
 
@@ -28,6 +28,14 @@ public:
 	void ServerRequestAddItem(const FAddItemRequest& Request);
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Authority")
 	bool TryAddItemAuthority(const FAddItemRequest& Request, FAddItemResponse& OutResponse);
+	
+	// Remove Item
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Request")
+	void RequestRemoveItem(const FRemoveItemRequest& Request);
+	UFUNCTION(Server, Reliable)
+	void ServerRequestRemoveItem(const FRemoveItemRequest& Request);
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Authority")
+	bool TryRemoveItemAuthority(const FRemoveItemRequest& Request, FRemoveItemResponse& OutResponse);
 	
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;

@@ -1,4 +1,4 @@
-﻿#include "Inventory/Component/IT_InventoryComponent.h"
+#include "Inventory/Component/IT_InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -58,6 +58,50 @@ bool UIT_InventoryComponent::TryAddItemAuthority(const FAddItemRequest& Request,
 		*StaticEnum<EAddItemResult>()->GetNameStringByValue(static_cast<int>(OutResponse.Result)));
 	
 	return OutResponse.AddedQuantity > 0;
+}
+
+void UIT_InventoryComponent::RequestRemoveItem(const FRemoveItemRequest& Request)
+{
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		FRemoveItemResponse Response;
+		TryRemoveItemAuthority(Request, Response);
+		return;
+	}
+	
+	ServerRequestRemoveItem(Request);
+}
+
+void UIT_InventoryComponent::ServerRequestRemoveItem_Implementation(const FRemoveItemRequest& Request)
+{
+	FRemoveItemResponse Response;
+	TryRemoveItemAuthority(Request, Response);
+}
+
+bool UIT_InventoryComponent::TryRemoveItemAuthority(const FRemoveItemRequest& Request, FRemoveItemResponse& OutResponse)
+{
+	OutResponse.Result = ERemoveItemResult::Failed;
+	OutResponse.RequestedQuantity = Request.Quantity;
+	OutResponse.RemovedQuantity = 0;
+	OutResponse.RemainingQuantity = Request.Quantity;
+	OutResponse.RemainingInSlot = 0;
+	
+	if (GetOwner() && !GetOwner()->HasAuthority()) return false;
+	if (!Request.ContainerId.IsValid()) return false;
+	if (Request.SlotIndex < 0) return false;
+	if (Request.Quantity <= 0) return false;
+	
+	const FRemoveItemResponse Response = InventoryMutator.RemoveItem(Inventory, Request);
+	
+	OutResponse = Response;
+	
+	UE_LOG(LogTemp, Warning, TEXT("TryRemoveItemAuthority Result: \nRemoved=%d \nRemaining=%d \nRemainingInSlot=%d \nResult=%s"),
+		OutResponse.RemovedQuantity,
+		OutResponse.RemainingQuantity,
+		OutResponse.RemainingInSlot,
+		*StaticEnum<ERemoveItemResult>()->GetNameStringByValue(static_cast<int>(OutResponse.Result)));
+	
+	return OutResponse.RemainingQuantity > 0;
 }
 
 int32 UIT_InventoryComponent::GetContainerMaxSlots(const FGameplayTag& ContainerId) const

@@ -1,4 +1,4 @@
-﻿#include "Inventory/Mutator/IT_InventoryMutator.h"
+#include "Inventory/Mutator/IT_InventoryMutator.h"
 
 FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, const FAddItemRequest& Request,
 	const int32 ContainerMaxSlots, const int32 ItemMaxStackSize)
@@ -97,6 +97,66 @@ FAddItemResponse FIT_InventoryMutator::AddItem(FInventoryEntryArray& Inventory, 
 	return Response;
 }
 
+FRemoveItemResponse FIT_InventoryMutator::RemoveItem(FInventoryEntryArray& Inventory, const FRemoveItemRequest& Request) const
+{
+	FRemoveItemResponse Response;
+	Response.Result = ERemoveItemResult::Failed;
+	Response.RequestedQuantity = Request.Quantity;
+	Response.RemovedQuantity = 0;
+	Response.RemainingQuantity = Request.Quantity;
+	Response.RemainingInSlot = 0;
+	
+	if (!Request.ContainerId.IsValid()) return Response;
+	if (Request.SlotIndex < 0) return Response;
+	if (Request.Quantity <= 0) return Response;
+	
+	const int32 EntryIndex = FindEntryIndexBySlot(Inventory, Request.ContainerId, Request.SlotIndex);
+	if (EntryIndex == INDEX_NONE) return Response;
+	
+	FInventoryEntry& Entry = Inventory.Entries[EntryIndex];
+	const int32 Removed = FMath::Min(Request.Quantity, Entry.Quantity);
+	if (Removed <= 0) return Response;
+	
+	Entry.Quantity -= Removed;
+	
+	Response.RemovedQuantity = Removed;
+	Response.RemainingQuantity = Request.Quantity - Removed;
+	Response.RemainingInSlot = Entry.Quantity;
+	
+	if (Entry.Quantity <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Mutator RemoveItem: Removing entry from \nSlot=%d \nRemovedQuantity=%d"),
+			Entry.SlotIndex,
+			Removed);
+		
+		Inventory.Entries.RemoveAt(EntryIndex);
+		Inventory.MarkArrayDirty();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Mutator RemoveItem: Reducing stack in \nSlot=%d \nCurrentQuantity=%d"),
+			Entry.SlotIndex,
+			Entry.Quantity);
+		
+		Inventory.MarkItemDirty(Entry);
+	}
+	
+	if (Response.RemovedQuantity == 0)
+	{
+		Response.Result = ERemoveItemResult::Failed;
+	}
+	else if (Response.RemainingQuantity > 0)
+	{
+		Response.Result = ERemoveItemResult::PartialSuccess;
+	}
+	else
+	{
+		Response.Result = ERemoveItemResult::FullSuccess;
+	}
+	
+	return Response;
+}
+
 int32 FIT_InventoryMutator::FindFirstFreeSlot(const FInventoryEntryArray& Inventory, const FGameplayTag& ContainerId,
 	int32 MaxSlots)
 {
@@ -122,6 +182,24 @@ int32 FIT_InventoryMutator::FindFirstFreeSlot(const FInventoryEntryArray& Invent
 		if (UsedSlots[SlotIndex]) continue;
 		
 		return SlotIndex;
+	}
+	
+	return INDEX_NONE;
+}
+
+int32 FIT_InventoryMutator::FindEntryIndexBySlot(const FInventoryEntryArray& Inventory, const FGameplayTag& ContainerId,
+	int32 SlotIndex)
+{
+	// Look for the entry that matches this container and slot
+	for (int32 Index = 0; Index < Inventory.Entries.Num(); ++Index)
+	{
+		const FInventoryEntry& Entry = Inventory.Entries[Index];
+		
+		// Return the array index of the matching entry
+		if (Entry.ContainerId == ContainerId && Entry.SlotIndex == SlotIndex)
+		{
+			return Index;
+		}
 	}
 	
 	return INDEX_NONE;
