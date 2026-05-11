@@ -21,42 +21,52 @@ void UIT_InventoryUIManager::InitializeUIManager()
 }
 
 
-void UIT_InventoryUIManager::ToggleInventoryWidget()
+void UIT_InventoryUIManager::ToggleWidget(const FGameplayTag& ContainerId)
 {
-	if (ActiveInventoryWidget)
+	if (ActiveWidget.Find(ContainerId))
 	{
-		CloseInventoryWidget();
+		CloseWidget(ContainerId);
 		return;
 	}
 	
-	OpenInventoryWidget();
+	OpenWidget(ContainerId);
 }
 
-void UIT_InventoryUIManager::OpenInventoryWidget()
+void UIT_InventoryUIManager::OpenWidget(const FGameplayTag& ContainerId)
 {
-	if (ActiveInventoryWidget) return;
+	if (ActiveWidget.Contains(ContainerId)) return;
+	
+	if (!InventoryComponent) return;
+	
+	const FContainerConfig* Config = InventoryComponent->GetContainerConfig(ContainerId);
+	if (!Config || !Config->WidgetClass) return;
 	
 	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 	if (!PlayerController) return;
 	
-	ActiveInventoryWidget = CreateWidget<UIT_PlayerInventoryWidget>(PlayerController, InventoryWidgetClass);
-	if (!ActiveInventoryWidget) return;
+	UIT_WidgetBase* NewWidget = CreateWidget<UIT_WidgetBase>(PlayerController, Config->WidgetClass);
+	if (!NewWidget) return;
 	
-	ActiveInventoryWidget->InitInventoryWidget(this);
+	NewWidget->InitWidget(this, ContainerId, Config->MaxSlots, Config->Columns);
+	NewWidget->AddToViewport();
 	
-	ActiveInventoryWidget->AddToViewport();
+	ActiveWidget.Add(ContainerId, NewWidget);
 	
 	UpdateInputMode(true);
 }
 
-void UIT_InventoryUIManager::CloseInventoryWidget()
+void UIT_InventoryUIManager::CloseWidget(const FGameplayTag& ContainerId)
 {
-	if (!ActiveInventoryWidget) return;
-	
-	ActiveInventoryWidget->RemoveFromParent();
-	ActiveInventoryWidget = nullptr;
-	
-	UpdateInputMode(false);
+	if (auto FoundWidget = ActiveWidget.Find(ContainerId))
+	{
+		if (*FoundWidget)
+		{
+			(*FoundWidget)->RemoveFromParent();
+		}
+		
+		ActiveWidget.Remove(ContainerId);
+		UpdateInputMode(false);
+	}
 }
 
 void UIT_InventoryUIManager::UpdateInputMode(bool bInventoryOpen)

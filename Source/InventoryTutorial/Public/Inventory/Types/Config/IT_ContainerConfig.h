@@ -4,6 +4,8 @@
 #include "GameplayTagContainer.h"
 #include "IT_ContainerConfig.generated.h"
 
+class UIT_WidgetBase;
+
 USTRUCT(BlueprintType)
 struct FContainerConfig
 {
@@ -14,4 +16,10 @@ struct FContainerConfig
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	int32 MaxSlots = 100;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	int32 Columns = 1;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	TSubclassOf<UIT_WidgetBase> WidgetClass;
 };

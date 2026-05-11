@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Inventory/Types/Item/IT_ItemTypes.h"
 #include "GameplayTagContainer.h"
 #include "IT_ItemDefinition.generated.h"
 
@@ -14,6 +15,12 @@ class INVENTORYTUTORIAL_API UIT_ItemDefinition : public UDataAsset
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	FGameplayTag ItemTag;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	UTexture2D* ItemIcon;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
+	EItemRarity ItemRarity = EItemRarity::Common;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Inventory")
 	bool bStackable = true;

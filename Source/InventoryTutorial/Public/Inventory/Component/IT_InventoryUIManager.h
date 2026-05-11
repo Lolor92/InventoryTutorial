@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "IT_InventoryUIManager.generated.h"
 
@@ -20,13 +21,13 @@ public:
 	UIT_InventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
-	void ToggleInventoryWidget();
+	void ToggleWidget(const FGameplayTag& ContainerId);
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
-	void OpenInventoryWidget();
+	void OpenWidget(const FGameplayTag& ContainerId);
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
-	void CloseInventoryWidget();
+	void CloseWidget(const FGameplayTag& ContainerId);
 
 protected:
 	virtual void BeginPlay() override;
@@ -40,9 +41,6 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UIT_InventoryComponent> InventoryComponent = nullptr;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
-	TSubclassOf<UIT_PlayerInventoryWidget> InventoryWidgetClass;
-	
 	UPROPERTY(Transient)
-	TObjectPtr<UIT_PlayerInventoryWidget> ActiveInventoryWidget = nullptr;
+	TMap <FGameplayTag, TObjectPtr<UUserWidget>> ActiveWidget;
 };

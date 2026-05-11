@@ -126,3 +126,31 @@ int32 UIT_InventoryComponent::GetItemMaxStackSize(const FGameplayTag& ItemTag) c
 	
 	return Def->bStackable ? FMath::Max(1, Def->MaxStackSize) : 1;
 }
+
+const FContainerConfig* UIT_InventoryComponent::GetContainerConfig(const FGameplayTag& ContainerId) const
+{
+	for (const FContainerConfig& Config : ContainerConfigs)
+	{
+		if (Config.ContainerId == ContainerId)
+		{
+			return &Config;
+		}
+	}
+	
+	return nullptr;
+}
+
+const FInventoryEntry* UIT_InventoryComponent::FindEntryAtSlot(const FGameplayTag& ContainerId, int32 SlotIndex) const
+{
+	if (!ContainerId.IsValid() || SlotIndex < 0) return nullptr;
+	
+	for (const FInventoryEntry& Entry : Inventory.Entries)
+	{
+		if (Entry.ContainerId == ContainerId && Entry.SlotIndex == SlotIndex)
+		{
+			return &Entry;
+		}
+	}
+	
+	return nullptr;
+}

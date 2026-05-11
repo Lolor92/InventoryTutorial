@@ -20,6 +20,9 @@ public:
 	
 	int32 GetContainerMaxSlots(const FGameplayTag& ContainerId) const;
 	int32 GetItemMaxStackSize(const FGameplayTag& ItemTag) const;
+	const FContainerConfig* GetContainerConfig(const FGameplayTag& ContainerId) const;
+	const FInventoryEntry* FindEntryAtSlot(const FGameplayTag& ContainerId, int32 SlotIndex) const;
+	const UIT_ItemDatabase* GetItemDatabase() { return ItemDatabase; }
 	
 	// Add Item
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Request")

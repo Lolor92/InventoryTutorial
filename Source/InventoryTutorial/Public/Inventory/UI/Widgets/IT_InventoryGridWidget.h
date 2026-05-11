@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Blueprint/UserWidget.h"
 #include "IT_InventoryGridWidget.generated.h"
 
@@ -15,10 +16,11 @@ class INVENTORYTUTORIAL_API UIT_InventoryGridWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	void InitGridWidget(UIT_InventoryUIManager* InInventoryUIManager);
+	void InitGridWidget(UIT_InventoryUIManager* InInventoryUIManager, const FGameplayTag& InContainerId,
+		const int32 InMaxSlots, int32 InColumns);
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
-	void BuildTestSlot();
+	void BuildGrid();
 	
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
@@ -29,4 +31,13 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "Inventory|UI")
 	TObjectPtr<UUniformGridPanel> SlotGridPanel = nullptr;
+	
+	UPROPERTY(Transient)
+	FGameplayTag ContainerId;
+	
+	UPROPERTY(Transient)
+	int32 MaxSlots;
+	
+	UPROPERTY(Transient)
+	int32 Columns;
 };
