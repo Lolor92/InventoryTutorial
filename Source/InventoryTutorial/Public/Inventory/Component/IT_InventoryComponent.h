@@ -9,6 +9,7 @@
 #include "Inventory/Types/Config/IT_ContainerConfig.h"
 #include "IT_InventoryComponent.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotChanged, FGameplayTag /*ContainerTag*/, const TArray<int32>& /*SlotIndices*/)
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class INVENTORYTUTORIAL_API UIT_InventoryComponent : public UActorComponent
@@ -39,6 +40,13 @@ public:
 	void ServerRequestRemoveItem(const FRemoveItemRequest& Request);
 	UFUNCTION(BlueprintCallable, Category = "Inventory|Authority")
 	bool TryRemoveItemAuthority(const FRemoveItemRequest& Request, FRemoveItemResponse& OutResponse);
+	
+	// Replication callbacks from FastArray
+	void HandleReplicationAdd(const TArrayView<int32>& Indices);
+	void HandleReplicationRemove(const TArrayView<int32>& Indices);
+	void HandleReplicationChange(const TArrayView<int32>& Indices);
+	
+	FOnSlotChanged OnSlotChanged;
 	
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;

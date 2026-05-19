@@ -16,6 +16,8 @@ class INVENTORYTUTORIAL_API UIT_WidgetBase : public UUserWidget
 public:
 	virtual void InitWidget(UIT_InventoryUIManager* InInventoryUIManager, const FGameplayTag& InContainerId, const int32 InMaxSlots, int32 InColumns);
 	
+	virtual void RefreshSlots(const TArray<int32>& SlotIndices);
+	
 protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UIT_InventoryUIManager> InventoryUIManager;

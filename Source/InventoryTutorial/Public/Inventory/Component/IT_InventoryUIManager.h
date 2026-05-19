@@ -6,6 +6,7 @@
 #include "IT_InventoryUIManager.generated.h"
 
 
+class UIT_WidgetBase;
 class UIT_PlayerInventoryWidget;
 class UIT_InventoryComponent;
 
@@ -34,6 +35,9 @@ protected:
 	
 	UFUNCTION()
 	void InitializeUIManager();
+	
+	UFUNCTION()
+	void HandleSlotsChanged(const FGameplayTag ContainerTag, const TArray<int32>& SlotIndices);
 
 private:
 	void UpdateInputMode(bool bInventoryOpen);
@@ -42,5 +46,5 @@ private:
 	TObjectPtr<UIT_InventoryComponent> InventoryComponent = nullptr;
 	
 	UPROPERTY(Transient)
-	TMap <FGameplayTag, TObjectPtr<UUserWidget>> ActiveWidget;
+	TMap <FGameplayTag, TObjectPtr<UIT_WidgetBase>> ActiveWidget;
 };

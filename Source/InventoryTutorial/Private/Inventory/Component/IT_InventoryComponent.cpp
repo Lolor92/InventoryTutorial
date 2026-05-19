@@ -2,7 +2,7 @@
 #include "Net/UnrealNetwork.h"
 
 
-UIT_InventoryComponent::UIT_InventoryComponent()
+UIT_InventoryComponent::UIT_InventoryComponent() : Inventory(this)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
@@ -102,6 +102,75 @@ bool UIT_InventoryComponent::TryRemoveItemAuthority(const FRemoveItemRequest& Re
 		*StaticEnum<ERemoveItemResult>()->GetNameStringByValue(static_cast<int>(OutResponse.Result)));
 	
 	return OutResponse.RemainingQuantity > 0;
+}
+
+void UIT_InventoryComponent::HandleReplicationAdd(const TArrayView<int32>& Indices)
+{
+	TMap<FGameplayTag, TArray<int32>> ChangedSlotsByContainer;
+	
+	for (int32 Index : Indices)
+	{
+		if (!Inventory.Entries.IsValidIndex(Index)) continue;
+		
+		const FInventoryEntry& Entry = Inventory.Entries[Index];
+		
+		if (!Entry.IsValidEntry()) continue;
+		
+		ChangedSlotsByContainer.FindOrAdd(Entry.ContainerId).AddUnique(Entry.SlotIndex);
+	}
+	
+	for (const TPair<FGameplayTag, TArray<int32>>& Pair : ChangedSlotsByContainer)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemAdded!"));
+		
+		OnSlotChanged.Broadcast(Pair.Key, Pair.Value);
+	}
+}
+
+void UIT_InventoryComponent::HandleReplicationRemove(const TArrayView<int32>& Indices)
+{
+	TMap<FGameplayTag, TArray<int32>> ChangedSlotsByContainer;
+	
+	for (int32 Index : Indices)
+	{
+		if (!Inventory.Entries.IsValidIndex(Index)) continue;
+		
+		const FInventoryEntry& Entry = Inventory.Entries[Index];
+		
+		if (!Entry.IsValidEntry()) continue;
+		
+		ChangedSlotsByContainer.FindOrAdd(Entry.ContainerId).AddUnique(Entry.SlotIndex);
+	}
+	
+	for (const TPair<FGameplayTag, TArray<int32>>& Pair : ChangedSlotsByContainer)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemRemoved!"));
+	
+		OnSlotChanged.Broadcast(Pair.Key, Pair.Value);
+	}
+}
+
+void UIT_InventoryComponent::HandleReplicationChange(const TArrayView<int32>& Indices)
+{
+	TMap<FGameplayTag, TArray<int32>> ChangedSlotsByContainer;
+	
+	for (int32 Index : Indices)
+	{
+		if (!Inventory.Entries.IsValidIndex(Index)) continue;
+		
+		const FInventoryEntry& Entry = Inventory.Entries[Index];
+		
+		if (!Entry.IsValidEntry()) continue;
+		
+		ChangedSlotsByContainer.FindOrAdd(Entry.ContainerId).AddUnique(Entry.SlotIndex);
+	}
+	
+	for (const TPair<FGameplayTag, TArray<int32>>& Pair : ChangedSlotsByContainer)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemChanged!"));
+	
+		OnSlotChanged.Broadcast(Pair.Key, Pair.Value);
+	}
 }
 
 int32 UIT_InventoryComponent::GetContainerMaxSlots(const FGameplayTag& ContainerId) const

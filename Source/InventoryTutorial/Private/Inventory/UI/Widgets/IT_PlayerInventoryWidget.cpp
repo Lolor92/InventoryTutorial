@@ -11,3 +11,11 @@ void UIT_PlayerInventoryWidget::InitWidget(UIT_InventoryUIManager* InInventoryUI
 		GridWidget->InitGridWidget(InInventoryUIManager, InContainerId, InMaxSlots, InColumns);
 	}
 }
+
+void UIT_PlayerInventoryWidget::RefreshSlots(const TArray<int32>& SlotIndices)
+{
+	if (GridWidget)
+	{
+		GridWidget->RefreshSlots(SlotIndices);
+	}
+}

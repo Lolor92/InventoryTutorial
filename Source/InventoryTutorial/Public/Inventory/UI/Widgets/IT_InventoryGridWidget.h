@@ -22,6 +22,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory|UI")
 	void BuildGrid();
 	
+	void RefreshSlots(const TArray<int32>& SlotIndices);
+	
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
 	TObjectPtr<UIT_InventoryUIManager> InventoryUIManager = nullptr;
@@ -31,6 +33,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "Inventory|UI")
 	TObjectPtr<UUniformGridPanel> SlotGridPanel = nullptr;
+	
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UIT_InventorySlotWidget>> SlotWidgets;
 	
 	UPROPERTY(Transient)
 	FGameplayTag ContainerId;

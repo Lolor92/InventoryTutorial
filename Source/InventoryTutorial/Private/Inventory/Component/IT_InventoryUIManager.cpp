@@ -18,8 +18,20 @@ void UIT_InventoryUIManager::BeginPlay()
 void UIT_InventoryUIManager::InitializeUIManager()
 {
 	InventoryComponent = GetOwner() ? GetOwner()->FindComponentByClass<UIT_InventoryComponent>() : nullptr;
+	if (!InventoryComponent) return;
+	
+	InventoryComponent->OnSlotChanged.AddUObject(this, &UIT_InventoryUIManager::HandleSlotsChanged);
 }
 
+void UIT_InventoryUIManager::HandleSlotsChanged(const FGameplayTag ContainerTag, const TArray<int32>& SlotIndices)
+{
+	if (!ContainerTag.IsValid() || SlotIndices.Num() == 0) return;
+	
+	TObjectPtr<UIT_WidgetBase>* FoundWindow = ActiveWidget.Find(ContainerTag);
+	if (!FoundWindow) return;
+	
+	(*FoundWindow)->RefreshSlots(SlotIndices);
+}
 
 void UIT_InventoryUIManager::ToggleWidget(const FGameplayTag& ContainerId)
 {

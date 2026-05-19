@@ -11,6 +11,8 @@ Instead of replicating the entire array every time one item changes, Unreal can 
 That makes it a good fit for inventories, because items are constantly being added, removed, stacked, or moved.
 */
 
+class UIT_InventoryComponent;
+
 USTRUCT()
 struct FInventoryEntry : public FFastArraySerializerItem
 {
@@ -41,8 +43,18 @@ struct FInventoryEntryArray : public FFastArraySerializer
 {
 	GENERATED_BODY()
 	
+	FInventoryEntryArray() = default;
+	FInventoryEntryArray(UIT_InventoryComponent* InInventoryComponent) { InventoryComponent = InInventoryComponent; }
+	
 	UPROPERTY()
 	TArray<FInventoryEntry> Entries;
+	
+	UPROPERTY()
+	TObjectPtr<UIT_InventoryComponent> InventoryComponent;
+	
+	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
+	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
+	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize);
 	
 	// Tells Unreal to replicate Entries using Fast Array delta serialization.
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)

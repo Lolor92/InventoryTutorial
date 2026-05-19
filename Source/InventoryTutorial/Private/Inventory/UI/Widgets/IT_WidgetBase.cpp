@@ -9,3 +9,7 @@ void UIT_WidgetBase::InitWidget(UIT_InventoryUIManager* InInventoryUIManager, co
 	MaxSlots = InMaxSlots;
 	Columns = InColumns;
 }
+
+void UIT_WidgetBase::RefreshSlots(const TArray<int32>& SlotIndices)
+{
+}

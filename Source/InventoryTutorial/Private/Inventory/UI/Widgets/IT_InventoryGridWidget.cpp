@@ -29,6 +29,9 @@ void UIT_InventoryGridWidget::BuildGrid()
 	
 	SlotGridPanel->ClearChildren();
 	
+	SlotWidgets.Reset();
+	SlotWidgets.SetNum(MaxSlots);
+	
 	for (int32 SlotIndex = 0; SlotIndex < MaxSlots; SlotIndex++)
 	{
 		const int32 Row = SlotIndex / Columns;
@@ -39,5 +42,16 @@ void UIT_InventoryGridWidget::BuildGrid()
 		
 		SlotWidget->InitSlotWidget(InventoryUIManager, ContainerId, SlotIndex);
 		SlotGridPanel->AddChildToUniformGrid(SlotWidget, Row, Column);
+		SlotWidgets[SlotIndex] = SlotWidget;
+	}
+}
+
+void UIT_InventoryGridWidget::RefreshSlots(const TArray<int32>& SlotIndices)
+{
+	for (int32 SlotIndex : SlotIndices)
+	{
+		if (!SlotWidgets.IsValidIndex(SlotIndex)) continue;
+		
+		SlotWidgets[SlotIndex]->Refresh();
 	}
 }
